@@ -3,7 +3,7 @@ import os
 from flask_sslify import SSLify  # SSL 적용을 위한 모듈
 
 app = Flask(__name__)
-ssl_home = '/etc/letsencrypt/live/tr33.r-e.kr/'
+ssl_home = '/etc/letsencrypt/live/veneer.r-e.kr/'
 ssl_fullchain = ssl_home + 'fullchain.pem'
 ssl_privkey = ssl_home + 'privkey.pem'
 
