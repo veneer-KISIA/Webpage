@@ -190,3 +190,4 @@ htmlcov/
 # veneer 전용
 uploads/
 log.log
+test/

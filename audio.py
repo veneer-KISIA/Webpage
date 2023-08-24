@@ -4,7 +4,18 @@ import log
 import json
 from pydub import AudioSegment
 from pydub.generators import Sine
+import whisper_timestamped as whisper
 
+def transcribe(file):
+    """
+    https://github.com/linto-ai/whisper-timestamped
+    whisper_timestamped 이용해서 오디오 파일을 텍스트로 변환한다.
+
+    :param file: 오디오 파일 경로
+    """
+    audio = whisper.load_audio(file)
+    model = whisper.load_model("tiny", device="cpu")
+    return whisper.transcribe(model, audio)
 
 def save_audio(audio_file, path):
     """
@@ -106,7 +117,7 @@ def get_mask_times(file):
     :param file: whisper-timestamped에서 추출된 json 파일
     :return: [[시작1, 종료1], [시작2, 종료2], ...]] 형태의 시간구간 리스트
     """
-    with open(file) as f:
+    with open(file, encoding="utf-8") as f:
         data = json.load(f)
     # d(json.dumps(data, indent='\t'))
 
@@ -139,7 +150,7 @@ def get_mask_times(file):
 
         # [MASK]가 포함된 단어를 찾으면
         if has_mask(ner_word):
-            d("===============================================")
+            d("==================== 마스크 =======================")
             d(f"mask 시작 단어: {raw_word}")
             start_time = raw_word_info["start"]
             next_ner_word = ner_words.pop(0)
@@ -159,7 +170,7 @@ def get_mask_times(file):
 
             d(f"mask 종료 단어: {prev_raw_word_info['text']}")
             d(f"시작 시간: {start_time}, 종료 시간: {end_time}")
-            d("===============================================")
+            d("==================================================")
 
     return mask_times
 
@@ -175,11 +186,21 @@ if __name__ == "__main__":
     log.set_level(__name__, "d")
     d = logger.debug
 
-    audio_file = "korean3.mp3"
-    timestamped_file = "korean3-2.json"
+    # 파일 경로
+    audio_file = "audio/korean.m4a"
+    stt_file = "stt/korean2.json"
+    
+    # # STT 후, 파일 저장
+    stt = transcribe(audio_file)
+    with open(stt_file, "w", encoding='utf-8') as f:
+        json.dump(stt, f, indent='\t', ensure_ascii=False)
+    # 출력해보기
+    stt = json.dumps(stt, indent='\t', ensure_ascii=False)
+    d(f"STT: {stt}")
+    
     # 마스킹 된 단어들의 시간 구간 리스트 구하기
-    mask_times = get_mask_times(timestamped_file)
+    mask_times = get_mask_times(stt_file)
     d(f"마스킹 시간구간: {mask_times}")
 
-    # 마스킹 된 단어들의 시간 구간 리스트를 오디오 파일에 덮어씌우기
+    # 마스킹 된 단어들의 시간 구간 리스트를 오디오 파일에 덮어씌우기 (라이브러리 오류)
     # overlay_mask_times(audio_file, mask_times, save_path="korean3-masked.mp3")
