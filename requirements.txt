@@ -2,3 +2,4 @@ flask
 flask-sslify
 pydub
 ffmpeg
+whisper_timestamped

@@ -52,3 +52,10 @@ def set_level(name, level):
     logger.setLevel(level)
     for hander in logger.handlers:
         hander.setLevel(level)
+
+
+# main일 때
+if __name__ == "__main__":
+    logger = get(__name__)
+    set_level(__name__, "c")
+    logger.info("안녕")
