@@ -3,7 +3,7 @@ import os
 import json
 from pydub import AudioSegment
 import whisper_timestamped as whisper
-import audio
+import stt
 
 app = Flask(__name__)
 
@@ -30,15 +30,12 @@ def upload():
         file.save(filename)
 
         # STT 변환 실행
-        stt_result = audio.transcribe(filename)
+        stt_result = stt.transcribe(filename)
+        print(stt_result)
+        
         # 여기서 stt_result 변수에 STT 결과가 저장됩니다.
 
-        return jsonify(message='파일이 정상적으로 업로드 되고 STT 변환되었습니다. ', fileName=file.filename, STT=stt_result), 200
-
-def transcribe_audio(audio_filepath):
-    audio = whisper.load_audio(audio_filepath)
-    model = whisper.load_model("tiny", device="cpu")
-    return whisper.transcribe(model, audio)
+        return jsonify(message='파일 업로드 및 STT 변환 완료', fileName=file.filename, STT=stt_result), 200
 
 @app.route('/download/<filename>', methods=['GET'])
 def download(filename):
@@ -47,3 +44,10 @@ def download(filename):
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=9999)
+    # stt_result = stt.transcribe("audio/korean.mp3")
+    # print(stt_result)
+    # print(type(stt_result))
+
+
+# 할 것
+# - 로그 사용해서 디버깅하기
