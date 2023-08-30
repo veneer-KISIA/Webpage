@@ -13,7 +13,7 @@ def transcribe(file):
     """
     audio = whisper.load_audio(file)
     model = whisper.load_model("tiny", device="cpu")
-    return whisper.transcribe(model, audio)
+    return whisper.transcribe(model, audio, language="ko")
 
 
 def overlay_mask_times(origin, mask_times, overlay=None, save_path=None, mix=False):
