@@ -21,6 +21,9 @@
     <ul id="audio-player"></ul>
     <ul id="messages"></ul>
 
+    <h2>STT 결과:</h2>
+    <div id="result"></div>
+
     <script>
       // 파일 다운로드
       const downloadButton = document.getElementById("downloadButton");
@@ -70,8 +73,8 @@
       // 녹음 시작 버튼 클릭 이벤트
       startRecordButton.addEventListener("click", async () => {
         try {
-const clipboardUrl = await navigator.clipboard.readText();
-      console.log(clipboardUrl)
+          const clipboardUrl = await navigator.clipboard.readText();
+          console.log(clipboardUrl);
           audioChunks.length = 0; // 이전의 audio chunks를 모두 삭제
           const stream = await navigator.mediaDevices.getUserMedia({
             audio: true,
@@ -165,7 +168,22 @@ const clipboardUrl = await navigator.clipboard.readText();
           log(content);
         }
       });
+
+      // 서버에서 STT 결과를 가져오는 함수
+      function fetchSTTResult() {
+        // 서버로부터 STT 결과를 가져옵니다. 여기서 서버 URL을 적절하게 변경해야 합니다.
+        fetch("/get_stt_result")
+          .then((response) => response.json())
+          .then((data) => {
+            // 결과를 result div에 표시합니다.
+            document.getElementById("result").innerText = data.STT;
+          })
+          .catch((error) => {
+            console.error("STT 결과 가져오기 실패:", error);
+          });
+      }
+      // 페이지가 로드될 때 STT 결과를 가져옵니다.
+      window.onload = fetchSTTResult;
     </script>
   </body>
 </html>
-
