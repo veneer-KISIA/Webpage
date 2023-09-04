@@ -30,17 +30,37 @@ def upload():
         file.save(filename)
 
         # STT 변환 실행
-        stt_result = stt.transcribe(filename)
-        print(stt_result)
-        
         # 여기서 stt_result 변수에 STT 결과가 저장됩니다.
+        stt_result = stt.transcribe(filename)
+        print("STT 결과:", stt_result)
+        #print(stt_result)
+        # 'text' 부분만 추출하여 반환
+        stt_text = stt_result.get('text', '')  # 'text' 키가 없을 경우 빈 문자열 반환
+        print("추출된 텍스트:", stt_text)
+        
+        # STT 결과를 JSON 파일로 저장 (STT 폴더에 저장됩니다)
+        stt_filename = os.path.splitext(file.filename)[0] + '.json'
+        stt_filepath = os.path.join(app.config['STT_FOLDER'], stt_filename)
 
-        return jsonify(message='파일 업로드 및 STT 변환 완료', fileName=file.filename, STT=stt_result), 200
+        with open(stt_filepath, 'w', encoding='utf-8') as stt_file:
+            json.dump(stt_result, stt_file, ensure_ascii=False, indent=4)
+        
+
+        return jsonify(message='파일 업로드 및 STT 변환 완료', fileName=file.filename, STT=stt_text), 200
 
 @app.route('/download/<filename>', methods=['GET'])
 def download(filename):
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     return send_file(filepath, as_attachment=True)
+
+@app.route('/get_stt_result', methods=['GET'])
+def get_stt_result():
+    stt_result = stt.transcribe("audio/korean.mp3")  # 적절한 파일 경로로 변경
+
+    # 'text' 부분만 추출하여 반환
+    stt_text = stt_result.get('text', '')
+
+    return jsonify(STT=stt_text)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=9999)
