@@ -150,7 +150,7 @@
         fileNameInput = document.querySelector('input[name="fileName"]');
         const audioBlob = new Blob(audioChunks, { type: "audio/*" });
         const formData = new FormData();
-        formData.append("file", audioBlob, fileNameInput.value);
+        formData.append("audio", audioBlob, fileNameInput.value);
 
         let content = "";
         try {

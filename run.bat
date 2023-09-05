@@ -1,3 +1,3 @@
 call act.bat
-python app-no-ssl.py >> con
+python app.py >> con
 call deact.bat

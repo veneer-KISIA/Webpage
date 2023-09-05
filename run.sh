@@ -1,1 +1,2 @@
-screen -S flask python3 app.py
+#!/bin/bash
+screen -S veneer python3 app.py --ssl
