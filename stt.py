@@ -27,6 +27,8 @@ def overlay_mask_times(origin, mask_times, overlay=None, save_path=None, mix=Fal
 
     :return: 덮어씌워진 오디오 파일 객체
     """
+
+    origin = audio.load(origin)
     for start, end in mask_times:
         start *= 1000
         end *= 1000
@@ -61,16 +63,21 @@ def get_mask_times(file):
 
     # 몇가지 단어가 테스트를 위해 [MASK] 처리된 문장
     # ner_text = " 안녕? 네 이름은 홍길 동이야 현재 대한민국 경기도에 살고 있어 너는 이름이 어떻게 돼? 괜찮으면 전화번호도 말려줘 잘가?"
-    ner_text = (
-        " 안녕? 네 이름은 [NAME]이야 현재 [LOC_COUNTRY]에 살고 있어 너는 이름이 어떻게 돼? 괜찮으면 전화번호도 말려줘 잘가?"
-    )
+    # ner_text = (
+    #     " 안녕? 네 이름은 [NAME]이야 현재 [LOC_COUNTRY]에 살고 있어 너는 이름이 어떻게 돼? 괜찮으면 전화번호도 말려줘 잘가?"
+    # )
+
+    ner_text = data['text'] # mask 처리된 text
+    i(f"ner_text: {ner_text}")
     ner_words = ner_text.strip().split(" ")
     d(f"ner_words {ner_words}")
+
     segments = data["segments"]
+    raw_words = [word for segment in segments for word in segment["words"]] # mask 처리 안된 text
+    i(f"raw_words: {raw_words}")
 
     # 덮어씌울 리스트 (구조: [[시작1, 종료1], [시작2, 종료2], ...]])
     mask_times = []
-    raw_words = [word for segment in segments for word in segment["words"]]
 
     # ner_words가 1개 이상일때 까지
     while len(ner_words):
@@ -117,13 +124,14 @@ def decode_text(txt):
     return bytes(txt, "utf-8").decode("unicode_escape")
 
 
+# 로거 설정
+logger = log.get(__name__)
+log.set_level(__name__, "i")
+i, d = logger.info, logger.debug
+
+
 # 메인
 if __name__ == "__main__":
-    # 로거
-    logger = log.get(__name__)
-    log.set_level(__name__, "i")
-    i, d = logger.info, logger.debug
-
     # 파일 경로
     audio_file = "audio/korean.mp3"
     stt_file = "stt/korean.json"

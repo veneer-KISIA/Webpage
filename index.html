@@ -5,30 +5,52 @@
   </head>
 
   <body>
-    <h2>파일 다운로드</h2>
-    <input type="text" id="fileNameInput" placeholder="파일 이름" />
-    <button id="downloadButton">다운로드</button>
+    <div id="file-download">
+      <h2>파일 다운로드</h2>
+      <input type="text" id="fileNameInput" placeholder="파일 이름" />
+      <button id="downloadButton">다운로드</button>
+    </div>
 
     <hr />
 
-    <h2>오디오 녹음 및 전송</h2>
-    <input type="text" name="fileName" placeholder="파일 이름 입력" />
-    <button id="startRecord">녹음 시작</button>
-    <button id="pauseRecord" disabled>일시정지</button>
-    <button id="stopRecord" disabled>녹음 정지</button>
-    <button id="upload" disabled>파일 전송</button>
+    <div id="audio-upload">
+      <h2>오디오 녹음 및 전송</h2>
+      <input type="text" id="file-name" placeholder="파일 이름 입력" />
+      <button id="startRecord">녹음 시작</button>
+      <button id="pauseRecord" disabled>일시정지</button>
+      <button id="stopRecord" disabled>녹음 정지</button>
+      <button id="upload" disabled>파일 전송</button>
 
-    <ul id="audio-player"></ul>
-    <ul id="messages"></ul>
+      <ul id="audio-player"></ul>
+      <ul id="messages"></ul>
 
-    <h2>STT 결과:</h2>
-    <div id="result"></div>
+      <h3>STT 결과:</h3>
+      <div id="stt-text"></div>
+      <br />
+      <h5>STT 전체결과:</h5>
+      <div id="stt-result"></div>
+    </div>
+
+    <hr />
+
+    <div id="mask-audio">
+      <h2>오디오 마스킹</h2>
+      <label for="audio-file">마스킹할 오디오 파일: </label>
+      <input type="file" id="audio" /> <br /><br />
+      <textarea id="data" cols="30" rows="10"></textarea> <br />
+      <button id="maskAudio">업로드</button>
+
+      <h3>마스킹된 오디오:</h3>
+      <div id="masked-audio"></div>
+    </div>
 
     <script>
       // 파일 다운로드
-      const downloadButton = document.getElementById("downloadButton");
+      const fileDownloadDiv = document.getElementById("file-download");
+      const downloadButton = fileDownloadDiv.querySelector("#downloadButton");
       downloadButton.addEventListener("click", async () => {
-        const fileNameInput = document.getElementById("fileNameInput").value;
+        const fileNameInput =
+          fileDownloadDiv.querySelector("#fileNameInput").value;
         if (!fileNameInput) {
           alert("파일 이름을 입력하세요.");
           return;
@@ -57,11 +79,12 @@
       let isPaused = false;
 
       // 오디오 관련 버튼
-      const startRecordButton = document.getElementById("startRecord");
-      const pauseRecordButton = document.getElementById("pauseRecord");
-      const stopRecordButton = document.getElementById("stopRecord");
-      const uploadButton = document.getElementById("upload");
-      const messages = document.getElementById("messages");
+      const audioUploadDiv = document.getElementById("audio-upload");
+      const startRecordButton = audioUploadDiv.querySelector("#startRecord");
+      const pauseRecordButton = audioUploadDiv.querySelector("#pauseRecord");
+      const stopRecordButton = audioUploadDiv.querySelector("#stopRecord");
+      const uploadButton = audioUploadDiv.querySelector("#upload");
+      const messages = audioUploadDiv.querySelector("#messages");
 
       // 결과 로그 출력 함수
       function log(msg) {
@@ -82,19 +105,24 @@
           // 녹음기가 데이터를 받을 때마다 audioChunks에 저장
           mediaRecorder.addEventListener("dataavailable", (event) => {
             if (event.data.size > 0) {
-              audioChunks.push(event.data);
+              audioChunks.push(event.data)
             }
-          });
+          })
+
+          // mediaRecorder.ondataavailable = (event) => {
+          //   audioChunks.push(event.data); // 오디오 데이터가 취득될 때마다 배열에 담아둔다.
+          // };
 
           // 녹음기가 녹음을 멈추면 audioChunks를 하나의 Blob으로 만들고 오디오 플레이어에 추가
           mediaRecorder.addEventListener("stop", () => {
+            mediaRecorder.stop();
             const audioBlob = new Blob(audioChunks, { type: "audio/*" });
             const audioUrl = URL.createObjectURL(audioBlob);
             const audio = new Audio(audioUrl);
             audio.controls = true;
 
-            fileName = document.querySelector('input[name="fileName"]').value;
-            playerlist = document.getElementById("audio-player");
+            fileName = audioUploadDiv.querySelector("#file-name").value;
+            playerlist = audioUploadDiv.querySelector("#audio-player");
 
             // 기존 자식 요소 삭제
             while (playerlist.firstChild) {
@@ -145,7 +173,7 @@
       // 파일 전송 버튼 클릭 이벤트
       uploadButton.addEventListener("click", async () => {
         // 파일 이름 가져오기
-        fileNameInput = document.querySelector('input[name="fileName"]');
+        fileNameInput = audioUploadDiv.querySelector("#file-name");
         const audioBlob = new Blob(audioChunks, { type: "audio/*" });
         const formData = new FormData();
         formData.append("audio", audioBlob, fileNameInput.value);
@@ -159,10 +187,47 @@
 
           const data = await response.json();
           content = data.message + ` (${data.fileName})`;
-          document.getElementById("result").innerText = data.STT;
+          audioUploadDiv.querySelector("#stt-text").innerText = data.stt_text;
+          audioUploadDiv.querySelector("#stt-result").innerText =
+            JSON.stringify(data.stt_result);
         } catch (error) {
           const newMessageDiv = document.createElement("div");
           content = fileNameInput.value + " 파일 업로드 에러: " + error;
+        } finally {
+          log(content);
+        }
+      });
+
+      // audioMask 버튼 클릭 이벤트
+      const maskAudioDiv = document.getElementById("mask-audio");
+      const maskAudioButton = maskAudioDiv.querySelector("#maskAudio");
+
+      maskAudioButton.addEventListener("click", async () => {
+        const audio = maskAudioDiv.querySelector("#audio").files[0];
+        const data = maskAudioDiv.querySelector("#data").value;
+
+        const formData = new FormData();
+        formData.append("audio", audio);
+        formData.append("data", data);
+
+        let content = "";
+        try {
+          const response = await fetch("/upload/mask-audio", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (response.ok) {
+            const audioBlob = await response.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+
+            let audio = document.createElement("audio");
+            audio.controls = true;
+            audio.src = audioUrl;
+            maskAudioDiv.querySelector("#masked-audio").appendChild(audio);
+          }
+        } catch (error) {
+          content = "오디오 마스킹 에러: " + error;
         } finally {
           log(content);
         }

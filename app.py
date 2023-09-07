@@ -31,23 +31,28 @@ def upload_mask_audio():
     """
     audio파일과 whisper_timestamped의 json결과 또는 시간 리스트를 받아서 마스킹된 오디오를 반환
 
-    json일때와 시간 리스트를 구분하는 방법: json객체 안에 'type'키로 구분합니다. 
-    'type'키의 값이 'json'이면 json객체로 인식하고, 'time-list'이면 시간 리스트로 인식합니다.
-    데이터는 'data'키에 들어있어야 합니다.
+    json일때와 시간 리스트를 구분하는 방법: json객체 안에 'text'키가 있으면 whisper_timestamped의 json결과로 인식하고,
+    아니면 시간 리스트로 인식합니다.
+
+    시간 리스트 형식: [[시작시간, 끝시간], [시작시간, 끝시간], ...]
     """
     # 요청에서 오디오 파일과 JSON 데이터 가져오기
     audio_file = request.files['audio']
     json_data = json.loads(request.form['data'])
 
     # audio_file을 upload/audio폴더에 저장
-    audio_filename = os.path.join(app.config['AUDIO_FOLDER'], audio_file.filename)
-    audio_file.save(audio_filename)
+    audio_path = os.path.join(app.config['AUDIO_FOLDER'], audio_file.filename)
+    audio_filename = os.path.splitext(audio_file.filename)[0]
+    i(f"json_data: {json_data}")
+    audio_file.save(audio_path)
 
-    # 데이터가 JSON 객체인지 시간 리스트인지 확인하기
-    if json_data['type'] == 'json':
+    i(f"업로드된 데이터 타입 {'whisper' if 'text' in json_data else 'time-list'}")
+
+    # 데이터가 whisper_timestamped의 json이면
+    if 'text' in json_data:
         # 데이터를 masked_stt폴더에 파일로 저장
-        masked_stt = json_data['data']
-        masked_stt_filename = os.path.splitext(audio_file.filename)[0] + '.json'
+        masked_stt = json_data
+        masked_stt_filename = audio_filename + '.json'
         masked_stt_filepath = os.path.join(app.config['MASKED_STT_FOLDER'], masked_stt_filename)
         with open(masked_stt_filepath, 'w', encoding='utf-8') as masked_stt_file:
             json.dump(masked_stt, masked_stt_file, ensure_ascii=False, indent='\t')
@@ -55,15 +60,15 @@ def upload_mask_audio():
         # whisper_timestamped의 json에서 마스킹 된 부분들의
         # time-list를 추출해서 마스킹된 오디오를 반환
         mask_times = stt.get_mask_times(masked_stt_filepath)
-        overlay_path = os.path.join(audio_file.filename, app.config['MASKED_AUDIO_FOLDER'])
-        stt.overlay_mask_times(audio_filename, mask_times, save_path=overlay_path)
+        overlay_path = os.path.join(app.config['MASKED_AUDIO_FOLDER'], audio_file.filename)
+        stt.overlay_mask_times(audio_path, mask_times, save_path=overlay_path)
 
-    elif json_data['type'] == 'time-list':
+    else: # 데이터가 시간 리스트이면
         # 주어진 time-list를 이용해서 마스킹된 오디오를 반환
         pass # 만들어야 함
 
     # 마스킹된 오디오를 반환
-    return send_file(overlay_path, as_attachment=True)
+    return send_file(overlay_path, as_attachment=False, download_name=f'masked-{audio_filename}.mp3', mimetype='audio/*')
 
 
 
@@ -101,7 +106,7 @@ def upload_stt():
         with open(stt_filepath, 'w', encoding='utf-8') as stt_file:
             json.dump(stt_result, stt_file, ensure_ascii=False, indent='\t')
         
-        return jsonify(message='파일 업로드 및 STT 변환 완료', fileName=file.filename, STT=stt_text), 200
+        return jsonify(message='파일 업로드 및 STT 변환 완료', fileName=file.filename, stt_text=stt_text, stt_result=stt_result), 200
 
 @app.route('/download/<filename>', methods=['GET'])
 def download(filename):
@@ -140,7 +145,7 @@ def configs():
         os.makedirs(UPLOAD_FOLDER)
 
     # upload/audio
-    AUDIO_FOLDER = 'uploads'
+    AUDIO_FOLDER = 'audio'
     app.config['AUDIO_FOLDER'] = os.path.join(UPLOAD_FOLDER, AUDIO_FOLDER)
 
     # upload/stt
@@ -186,5 +191,6 @@ if __name__ == '__main__':
         setup_ssl()
         app_kargs['ssl_context'] = (ssl_fullchain, ssl_privkey)
     
-    app.run(debug=True, host='0.0.0.0', port=9999, **app_kargs)
-    i("서버가 9999포트에서 시작되었습니다")
+    port = 9999
+    app.run(debug=True, host='0.0.0.0', port=port, **app_kargs)
+    i(f"서버가 {port}포트에서 시작되었습니다")
