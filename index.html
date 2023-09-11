@@ -2,7 +2,72 @@
 <html>
   <head>
     <title>Audio Recording and Upload</title>
-    <link rel='stylesheet' href='./webpage_style.css'>
+    <!-- <link href='css/webpage_style.css?after' rel='stylesheet'> -->
+    <style>
+          
+      /* 전체 body 스타일 설정 */
+      body {
+        background-color: #f0f0f0; /* 연한 색 배경 설정 */
+        font-family: Arial, sans-serif; /* 글꼴 설정 */
+        color: #333; /* 텍스트 색상 설정 */
+        padding: 20px; /* 전체 컨텐츠와의 여백 설정 */
+      }
+
+      /* 제목 스타일 설정 */
+      h1 {
+        font-size: 36px; /* 제목의 글꼴 크기 설정 */
+        color: #3498db; /* 제목의 글꼴 색상 설정 */
+        text-align: center; /* 제목 가운데 정렬 */
+        margin-top: 20px; /* 위쪽 여백 설정 */
+      }
+
+      /* 버튼 스타일 설정 */
+      button {
+        background-color: #3498db; /* 버튼 배경 색상 설정 */
+        color: #fff; /* 버튼 텍스트 색상 설정 */
+        padding: 10px 20px; /* 버튼 내 여백 설정 */
+        border: none; /* 버튼 테두리 제거 */
+        cursor: pointer; /* 커서 스타일 설정 */
+        transition: background-color 0.3s ease; /* 배경 색상 변경 애니메이션 설정 */
+      }
+
+      button:hover {
+        background-color: #2980b9; /* 마우스 호버 시 배경 색상 변경 */
+      }
+
+      /* Input 태그 스타일 설정 */
+      input[type="text"] {
+        width: 30%; /* 입력 필드 너비 설정 */
+        padding: 10px; /* 입력 필드 내 여백 설정 */
+        font-size: 16px; /* 입력 필드 글꼴 크기 설정 */
+        border: 1px solid #ccc; /* 입력 필드 테두리 스타일 설정 */
+        border-radius: 5px; /* 입력 필드 테두리 모서리 둥글게 설정 */
+        outline: none; /* 입력 필드 포커스 시 테두리 제거 */
+      }
+
+      input[type="text"]:focus {
+        border-color: #3498db; /* 입력 필드 포커스 시 테두리 색상 변경 */
+      }
+
+      /* 추가 스타일 설정 */
+      #file-download, #audio-upload, #mask-audio {
+        background-color: #fff; /* 박스 배경 색상 설정 */
+        padding: 20px; /* 박스 내 여백 설정 */
+        margin-bottom: 20px; /* 아래쪽 여백 설정 */
+        border: 1px solid #ccc; /* 박스 테두리 스타일 설정 */
+        border-radius: 5px; /* 박스 테두리 모서리 둥글게 설정 */
+      }
+
+      /* STT 결과 영역 스타일 설정 */
+      #stt-text, #stt-result {
+        border: 2px solid #3498db; /* 테두리 스타일 설정 */
+        padding: 10px; /* 내부 여백 설정 */
+        margin-top: 10px; /* 위쪽 여백 설정 */
+        font-size: 18px; /* 글꼴 크기 설정 */
+      }
+
+    </style>
+    
   </head>
 
   <body>
