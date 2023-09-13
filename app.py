@@ -4,6 +4,7 @@ import stt
 from flask import Flask, request, send_file, jsonify
 import os
 import log
+import requests
 
 app = Flask(__name__)
 
@@ -103,10 +104,30 @@ def upload_stt():
         stt_filename = os.path.splitext(file.filename)[0] + '.json'
         stt_filepath = os.path.join(app.config['STT_FOLDER'], stt_filename)
 
+        # NER 모델 요청
+        domain = '34.82.13.9'
+        url = f'http://{domain}:8000/ner'
+
+        # Convert the data to JSON format
+        ner_data = json.dumps({'text': stt_text})
+
+        # Set the headers to indicate that you're sending JSON data
+        ner_headers = {'Content-Type': 'application/json; charset=utf-8'}
+
+        # Send the POST request with the JSON data
+        ner_response = requests.post(url, data=ner_data, headers=ner_headers)        
+        if ner_response.status_code == 200:
+            print('Request was successful!')
+            ner_text = ner_response.content.decode('unicode_escape')
+            print('Response content:', ner_text)
+        else:
+            print('Request failed with status code:', ner_response.status_code)
+            print('Response content:', ner_response.text)
+
         with open(stt_filepath, 'w', encoding='utf-8') as stt_file:
             json.dump(stt_result, stt_file, ensure_ascii=False, indent='\t')
         
-        return jsonify(message='파일 업로드 및 STT 변환 완료', fileName=file.filename, stt_text=stt_text, stt_result=stt_result), 200
+        return jsonify(message='파일 업로드 및 STT 변환 완료', fileName=file.filename, stt_text=stt_text, stt_result=stt_result, ner_text=ner_text), 200
 
 @app.route('/download/<filename>', methods=['GET'])
 def download(filename):
