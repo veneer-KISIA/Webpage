@@ -105,20 +105,17 @@ def upload_stt():
         stt_filepath = os.path.join(app.config['STT_FOLDER'], stt_filename)
 
         # NER 모델 요청
-        domain = '34.82.13.9'
+        domain = '121.136.16.110'
         url = f'http://{domain}:8000/ner'
 
-        # Convert the data to JSON format
         ner_data = json.dumps({'text': stt_text})
-
-        # Set the headers to indicate that you're sending JSON data
         ner_headers = {'Content-Type': 'application/json; charset=utf-8'}
 
-        # Send the POST request with the JSON data
         ner_response = requests.post(url, data=ner_data, headers=ner_headers)        
         if ner_response.status_code == 200:
             print('Request was successful!')
-            ner_text = ner_response.content.decode('unicode_escape')
+            ner_text = json.loads(ner_response.content.decode('unicode_escape'))['modified_text']
+            print(ner_text)
             print('Response content:', ner_text)
         else:
             print('Request failed with status code:', ner_response.status_code)
