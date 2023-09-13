@@ -143,12 +143,38 @@ uploadButton.addEventListener("click", async () => {
       body: formData,
     });
 
-    const data = await response.json();
+    let data = await response.json();
     content = data.message + ` (${data.fileName})`;
     audioUploadDiv.querySelector("#stt-text").innerText = data.stt_text;
-    audioUploadDiv.querySelector("#stt-result").innerText = JSON.stringify(
-      data.stt_result
-    );
+    audioUploadDiv.querySelector("#stt-result").innerText = JSON.stringify(data.stt_result);
+
+    raw_text = data.stt_text
+    maskText(raw_text)
+      .then((masked_text) => {
+        console.log('masked_text:', masked_text);
+        audioUploadDiv.querySelector("#masked-text").innerText = masked_text;
+
+        // console.log("data.stt_result", data.stt_result)
+        data.stt_result.text = masked_text;
+        console.log("data.stt_result", data.stt_result)
+
+        const audioData = audioUploadDiv.querySelector("#audio").files[0];
+
+        const audioBlob = maskAudio(audioData, JSON.stringify(data.stt_result)).then((audioBlob) => {
+
+          console.log("audioBlob", audioBlob.length)
+          console.log("audioBlob", audioBlob)
+          const audioUrl = URL.createObjectURL(audioBlob);
+
+          let audio = document.createElement("audio");
+          audio.controls = true;
+          audio.src = audioUrl;
+          audioUploadDiv.querySelector("#masked-audio").appendChild(audio);
+        })
+      })
+      .catch((error) => {
+        console.error('There was a problem with the fetch operation:', error);
+      });
   } catch (error) {
     const newMessageDiv = document.createElement("div");
     content = fileNameInput.value + " 파일 업로드 에러: " + error;
@@ -162,9 +188,19 @@ const maskAudioDiv = document.getElementById("mask-audio");
 const maskAudioButton = maskAudioDiv.querySelector("#maskAudio");
 
 maskAudioButton.addEventListener("click", async () => {
-  const audio = maskAudioDiv.querySelector("#audio").files[0];
+  const audioData = maskAudioDiv.querySelector("#audio").files[0];
   const data = maskAudioDiv.querySelector("#data").value;
 
+  const audioBlob = maskAudio(audioData, data);
+  const audioUrl = URL.createObjectURL(audioBlob);
+
+  let audio = document.createElement("audio");
+  audio.controls = true;
+  audio.src = audioUrl;
+  maskAudioDiv.querySelector("#masked-audio").appendChild(audio);
+});
+
+async function maskAudio(audio, data) {
   const formData = new FormData();
   formData.append("audio", audio);
   formData.append("data", data);
@@ -178,19 +214,15 @@ maskAudioButton.addEventListener("click", async () => {
 
     if (response.ok) {
       const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-
-      let audio = document.createElement("audio");
-      audio.controls = true;
-      audio.src = audioUrl;
-      maskAudioDiv.querySelector("#masked-audio").appendChild(audio);
+      return audioBlob;
     }
   } catch (error) {
     content = "오디오 마스킹 에러: " + error;
   } finally {
     log(content);
   }
-});
+}
+
 
 const copyButton = audioUploadDiv.querySelector("#copy-stt");
 copyButton.addEventListener("click", function () {
@@ -204,3 +236,75 @@ copyButton.addEventListener("click", function () {
   document.body.removeChild(tmpInput);
   alert("내용이 복사되었습니다.");
 });
+
+
+function decodeText(text) {
+  var encoder = new TextEncoder('utf-8');
+  var utf8Bytes = encoder.encode(text);
+  var decoder = new TextDecoder('utf-8');
+  var decodedString = decoder.decode(utf8Bytes);
+}
+
+// function maskText(text) {
+//   const data = { text: text };
+//   // const url = 'http://34.82.13.9:8000/ner';
+//   const url = 'http://localhost:9999/ner';
+//   const headers = { 'Content-Type': 'application/json; charset=utf-8' };
+
+//   return fetch(url, {
+//     method: 'POST',
+//     headers,
+//     body: JSON.stringify(data),
+//   })
+//     .then((response) => {
+//       if (response.ok) {
+//         return response.json();
+//       }
+//       throw new Error('Network response was not ok.');
+//     })
+//     .then((data) => {
+//       console.log('Request was successful!');
+//       // console.log('Response content:', JSON.stringify(data));
+//       let res_data = JSON.parse(JSON.stringify(data));
+
+//       // data = decodeText(data)
+//       // console.log("res_data", res_data);
+
+//       // data에서 masked_test 추출
+//       // let masked_text = res_data["modified_text"];
+//       let masked_text = res_data.modified_text;
+//       console.log('masked_text!!', masked_text);
+//       return masked_text;
+//     })
+//     .catch((error) => {
+//       console.error('There was a problem with the fetch operation:', error);
+//     });
+// }
+
+function maskText(text) {
+  const data = { text: text };
+  const url = 'http://localhost:9999/ner';
+  const headers = { 'Content-Type': 'application/json; charset=utf-8' };
+
+  return fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(data),
+  })
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      }
+      throw new Error('Network response was not ok.');
+    })
+    .then((data) => {
+      console.log('Request was successful!');
+      let res_data = JSON.parse(JSON.stringify(data));
+      let masked_text = res_data.modified_text;
+      console.log('masked_text!!', masked_text);
+      return masked_text;
+    })
+    .catch((error) => {
+      console.error('There was a problem with the fetch operation:', error);
+    });
+}
