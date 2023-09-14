@@ -105,21 +105,25 @@ def upload_stt():
         stt_filepath = os.path.join(app.config['STT_FOLDER'], stt_filename)
 
         # NER 모델 요청
-        domain = '121.136.16.110'
+        domain = '34.64.53.221'
         url = f'http://{domain}:8000/ner'
 
         ner_data = json.dumps({'text': stt_text})
         ner_headers = {'Content-Type': 'application/json; charset=utf-8'}
 
-        ner_response = requests.post(url, data=ner_data, headers=ner_headers)        
-        if ner_response.status_code == 200:
-            print('Request was successful!')
-            ner_text = json.loads(ner_response.content.decode('unicode_escape'))['modified_text']
-            print(ner_text)
-            print('Response content:', ner_text)
-        else:
-            print('Request failed with status code:', ner_response.status_code)
-            print('Response content:', ner_response.text)
+        try:
+            ner_response = requests.post(url, data=ner_data, headers=ner_headers)        
+            if ner_response.status_code == 200:
+                print('Request was successful!')
+                ner_text = json.loads(ner_response.content.decode('unicode_escape'))['modified_text']
+                print(ner_text)
+                print('Response content:', ner_text)
+            else:
+                print('Request failed with status code:', ner_response.status_code)
+                print('Response content:', ner_response.text)
+        except ConnectionError:
+            ner_text = 'NER 서버 연결 오류'
+
 
         with open(stt_filepath, 'w', encoding='utf-8') as stt_file:
             json.dump(stt_result, stt_file, ensure_ascii=False, indent='\t')
