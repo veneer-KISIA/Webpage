@@ -149,32 +149,32 @@ uploadButton.addEventListener("click", async () => {
     audioUploadDiv.querySelector("#stt-result").innerText = JSON.stringify(data.stt_result);
 
     raw_text = data.stt_text
-    maskText(raw_text)
-      .then((masked_text) => {
-        console.log('masked_text:', masked_text);
-        audioUploadDiv.querySelector("#masked-text").innerText = masked_text;
+    
+    masked_text = data.ner_text
+    console.log('masked_text:', masked_text);
+    audioUploadDiv.querySelector("#masked-text").innerText = masked_text;
 
-        // console.log("data.stt_result", data.stt_result)
-        data.stt_result.text = masked_text;
-        console.log("data.stt_result", data.stt_result)
+    // console.log("data.stt_result", data.stt_result)
+    data.stt_result.text = masked_text;
+    console.log("data.stt_result", data.stt_result)
 
-        const audioData = audioUploadDiv.querySelector("#audio").files[0];
+    const audioData = audioUploadDiv.querySelector("#audio").files[0];
 
-        const audioBlob = maskAudio(audioData, JSON.stringify(data.stt_result)).then((audioBlob) => {
+    const audioBlob = maskAudio(audioData, JSON.stringify(data.stt_result)).then((audioBlob) => {
 
-          console.log("audioBlob", audioBlob.length)
-          console.log("audioBlob", audioBlob)
-          const audioUrl = URL.createObjectURL(audioBlob);
+      console.log("audioBlob", audioBlob.length)
+      console.log("audioBlob", audioBlob)
+      const audioUrl = URL.createObjectURL(audioBlob);
 
-          let audio = document.createElement("audio");
-          audio.controls = true;
-          audio.src = audioUrl;
-          audioUploadDiv.querySelector("#masked-audio").appendChild(audio);
-        })
-      })
-      .catch((error) => {
-        console.error('There was a problem with the fetch operation:', error);
-      });
+      let audio = document.createElement("audio");
+      audio.controls = true;
+      audio.src = audioUrl;
+      audioUploadDiv.querySelector("#masked-audio").appendChild(audio);
+    })
+    
+    .catch((error) => {
+      console.error('There was a problem with the fetch operation:', error);
+    });
   } catch (error) {
     const newMessageDiv = document.createElement("div");
     content = fileNameInput.value + " 파일 업로드 에러: " + error;
