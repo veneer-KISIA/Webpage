@@ -123,6 +123,9 @@ def upload_stt():
                 print('Response content:', ner_response.text)
         except ConnectionError:
             ner_text = 'NER 서버 연결 오류'
+        except requests.exceptions.ConnectTimeout:
+            ner_text = 'NER 서버 연결 오류'
+        
 
 
         with open(stt_filepath, 'w', encoding='utf-8') as stt_file:
