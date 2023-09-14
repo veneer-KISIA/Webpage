@@ -98,16 +98,19 @@ def get_mask_times(file):
             i("==================== 마스크 =======================")
             i(f"mask 시작 단어: {raw_word}")
             start_time = raw_word_info["start"]
-            next_ner_word = ner_words.pop(0)
+            next_ner_word = ner_words[0] if len(ner_words) else "[]"
             prev_raw_word_info = raw_word_info
-            while len(raw_words):
-                if raw_word == next_ner_word:
-                    raw_words.insert(0, raw_word_info)
-                    ner_words.insert(0, next_ner_word)
-                    break
-                prev_raw_word_info = raw_word_info
-                raw_word_info = raw_words.pop(0)
-                raw_word = raw_word_info["text"]
+            if not has_mask(next_ner_word) and len(ner_words):
+                ner_words.pop(0)
+                while len(raw_words):
+                    print("raw_word, next_ner_word", raw_word, next_ner_word)
+                    if raw_word == next_ner_word:
+                        raw_words.insert(0, raw_word_info)
+                        ner_words.insert(0, next_ner_word)
+                        break
+                    prev_raw_word_info = raw_word_info
+                    raw_word_info = raw_words.pop(0)
+                    raw_word = raw_word_info["text"]
 
             # 끝까지 못찾으면 끝 단어까지 mask된것
             end_time = prev_raw_word_info["end"]
