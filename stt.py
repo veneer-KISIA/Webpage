@@ -12,7 +12,7 @@ def transcribe(file):
     :param file: 오디오 파일 경로
     """
     audio = whisper.load_audio(file)
-    model = whisper.load_model("tiny", device="cpu")
+    model = whisper.load_model("base", device="cpu")
     return whisper.transcribe(model, audio, language="ko")
 
 
