@@ -105,7 +105,7 @@ def upload_stt():
         stt_filepath = os.path.join(app.config['STT_FOLDER'], stt_filename)
 
         # NER 모델 요청
-        domain = '34.64.53.221'
+        domain = '34.64.229.136'
         url = f'http://{domain}:8000/ner'
 
         ner_data = json.dumps({'text': stt_text})
