@@ -89,12 +89,12 @@ audioFileInput.addEventListener('change', async function (event) {
       raw_text = data.stt_text;
       masked_text = data.ner_text;
       console.log('masked_text:', masked_text);
-      audioUploadDiv.querySelector("#masked-text").innerText = masked_text;
+      document.getElementById("masked-text").innerText = masked_text;
 
       data.stt_result.text = masked_text;
       console.log("data.stt_result", data.stt_result);
 
-      const audioData = audioUploadDiv.querySelector("#audio").files[0];
+      const audioData = document.getElementById("#masked-audio").files[0];
 
       const audioBlob = maskAudio(audioData, JSON.stringify(data.stt_result)).then((audioBlob) => {
 
