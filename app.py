@@ -141,7 +141,7 @@ def download(filename):
 def setup_ssl():
     from flask_sslify import SSLify  # SSL 적용을 위한 모듈
 
-    ssl_home = '/etc/letsencrypt/live/veneer.r-e.kr/'
+    ssl_home = '/etc/letsencrypt/live/veneer-test.r-e.kr/'
     global ssl_fullchain 
     ssl_fullchain = ssl_home + 'fullchain.pem'
     global ssl_privkey 
