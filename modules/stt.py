@@ -1,7 +1,7 @@
 import whisper_timestamped as whisper
-import audio
+import modules.audio as audio
 import re
-import log
+import modules.log as log
 import json
 
 def transcribe(file):

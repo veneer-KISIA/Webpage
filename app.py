@@ -1,9 +1,9 @@
 import sys
 import json
-import stt
+import modules.stt as stt
 from flask import Flask, request, send_file, jsonify
 import os
-import log
+import modules.log as log
 import requests
 
 app = Flask(__name__)
