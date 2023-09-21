@@ -20,7 +20,7 @@ def get(name, file="./log.log"):
         stream_handler.setLevel(logging.INFO)
         logger.addHandler(stream_handler)
 
-        file_handler = logging.FileHandler(file, mode="w", encoding="utf-8")
+        file_handler = logging.FileHandler(file, mode="a", encoding="utf-8")
         file_formatter = logging.Formatter(
             "[%(asctime)s] %(levelname)s(%(name)s) %(message)s"
         )
