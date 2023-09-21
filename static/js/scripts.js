@@ -82,11 +82,13 @@ audioFileInput.addEventListener('change', async function (event) {
       // 받아온 데이터를 처리하고 필요한 작업 수행
       // 예: 결과 표시, 추가 작업 등
       const content = data.message + ` (${data.fileName})`;
-      document.getElementById("stt-text").innerText = data.stt_text;
+
+      stt_text = data.stt_text;
+      document.getElementById("stt-text").innerText = stt_text;
       // audioUploadDiv.querySelector("#stt-text").innerText = data.stt_text;
       // audioUploadDiv.querySelector("#stt-result").innerText = JSON.stringify(data.stt_result);
 
-      raw_text = data.stt_text;
+      
       masked_text = data.ner_text;
       console.log('masked_text:', masked_text);
       document.getElementById("masked-text").innerText = masked_text;
