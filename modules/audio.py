@@ -2,7 +2,7 @@ import os
 from pydub import AudioSegment
 from pydub.generators import Sine
 
-def load(file):
+def load_audio(file):
     """
     오디오 파일을 불러온다
     
@@ -11,7 +11,7 @@ def load(file):
     """
 
     # audio 객체라면 바로 리턴
-    if not isinstance(file, str):
+    if isinstance(file, AudioSegment):
         return file
     
     # 아니라면 파일 로드
@@ -19,7 +19,7 @@ def load(file):
     return AudioSegment.from_file(file, format=format)
 
 
-def save(audio, path, new_format=None):
+def save_audio(audio, path, new_format=None):
     """
     pydub 오디오 파일을 저장한다. (확장자가 없으면 .mp3 확장자를 붙여준다.)
 
@@ -51,9 +51,9 @@ def convert_format(file, dst_format):
     :param file: 변환할 오디오 파일 경로
     :param dst_format: 변환할 포맷
     """
-    audio = load(file)
+    audio = load_audio(file)
     name, _ = name_format(file)
-    save(audio, f"{name}.{dst_format}", dst_format)
+    save_audio(audio, f"{name}.{dst_format}", dst_format)
 
 
 def crop_audio(src, start, end, dst=None):
@@ -67,10 +67,10 @@ def crop_audio(src, start, end, dst=None):
 
     :return: 자른 오디오 파일 객체
     """
-    audio = load(src)
+    audio = load_audio(src)
     audio = audio[start:end]
     if dst:
-        save(audio, dst)
+        save_audio(audio, dst)
     return audio
 
 
@@ -85,10 +85,10 @@ def repeat_audio(src, repeat_count, dst=None):
     :return: 반복된 오디오 파일 객체
     """
     repeat_count = int(repeat_count)
-    audio = load(src)
+    audio = load_audio(src)
     repeated_audio = audio * repeat_count
     if dst:
-        save(repeated_audio, dst)
+        save_audio(repeated_audio, dst)
     return repeated_audio
 
 
@@ -105,8 +105,8 @@ def overlay_audio(original_file, start, end, overlay_file=None, output_file=None
     :return: 특정 구간 덮어씌워진 오디오 파일 객체    
     """
     
-    original_audio = load(original_file)
-    overlay_audio = load(overlay_file) if overlay_file else sine_wave()
+    original_audio = load_audio(original_file)
+    overlay_audio = load_audio(overlay_file) if overlay_file else sine_wave()
 
     # 덮어씌울 구간의 길이
     duration = end - start
@@ -131,7 +131,7 @@ def overlay_audio(original_file, start, end, overlay_file=None, output_file=None
 
     # 만약 output_file이 있으면 저장
     if output_file:
-        save(output_audio, output_file)
+        save_audio(output_audio, output_file)
 
     # overylay된 audio 객체 리턴
     return output_audio
@@ -143,8 +143,31 @@ def sine_wave(duration=1000, freq=440):
     """
     duration = duration # ms
     frequency = freq # Hz
-    return Sine(frequency).to_audio_segment(duration=duration)
+    return Sine(frequency).to_audio_segment(duration=duration, volume=-15)
 
+
+def overlay_mask_times(origin, mask_times, overlay=None, save_path=None, mix=False):
+    """
+    마스킹 된 단어들의 시간 리스트를 오디오 파일에 덮어씌운다.
+
+    :param origin: 원본 오디오 파일
+    :param mask_times: 마스킹 된 단어들의 시간 구간 리스트
+    :param overlay: 덮어씌울 오디오 파일
+    :param save_path: 저장할 경로
+
+    :return: 덮어씌워진 오디오 파일 객체
+    """
+
+    new_audio = load_audio(origin)  # audio to be overlayed
+    for start, end in mask_times:
+        start *= 1000
+        end *= 1000
+        new_audio = overlay_audio(new_audio, start, end, overlay, mix=mix)
+
+    # 저장하기
+    if save_path:
+        save_audio(new_audio, save_path)
+    return origin
 
 # 메인
 if __name__ == "__main__":

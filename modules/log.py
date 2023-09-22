@@ -1,12 +1,17 @@
-import logging
+import logging, logging.config
 
-def get(name, file="./log.log"):
+def get(name: str, file=None):
     """
     이름이 name인 로거를 가져온다.
     
     :param name: 로거 이름
     :param file: 로그 파일 경로 (기본값: ./log.log)
     """
+    if not file:
+        if name.startswith('modules.'):  # modules.stt
+            name = name.split('.')[-1]  # stt
+        file = f'./logs/{name}.log'
+
     logger = logging.getLogger(name)
 
     if not logger.hasHandlers():

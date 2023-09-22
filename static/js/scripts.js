@@ -46,81 +46,111 @@ window.addEventListener('DOMContentLoaded', event => {
 });
 
 document.addEventListener('DOMContentLoaded', function () {
-// Browse 버튼 클릭 시 파일 입력 클릭 트리거
-const browseButton = document.getElementById('browseButton');
-const audioFileInput = document.getElementById('audioFile');
+  const browseButton = document.getElementById('browseButton');
+  const audioFileInput = document.getElementById('audioFile');
+  const audioUploadDiv = document.getElementById('audioUploadDiv');
 
-browseButton.addEventListener('click', function () {
-  audioFileInput.click();
-});
+  // Function to handle file upload
+  async function handleFileUpload(selectedFile) {
+    if (!selectedFile) {
+      alert('파일을 선택하세요.');
+      return;
+    }
 
-// 파일 입력 상태 변화(파일 선택) 감지
-audioFileInput.addEventListener('change', async function (event) {
-  const selectedFile = event.target.files[0];
+    const formData = new FormData();
+    formData.append("audio", selectedFile);
 
-  // 파일이 선택되지 않았을 경우 처리
-  if (!selectedFile) {
-    alert('파일을 선택하세요.');
-    return;
-  }
-
-  // FormData 객체를 사용하여 파일 업로드 준비
-  const formData = new FormData();
-  formData.append("audio", selectedFile);
-
-  try {
-    // 서버로 파일 업로드 요청 보내기
-    const response = await fetch("/upload/stt", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (response.ok) {
-      // 업로드 성공 시 처리
-      const data = await response.json();
-
-      // 받아온 데이터를 처리하고 필요한 작업 수행
-      // 예: 결과 표시, 추가 작업 등
-      const content = data.message + ` (${data.fileName})`;
-
-      stt_text = data.stt_text;
-      document.getElementById("stt-text").innerText = stt_text;
-      // audioUploadDiv.querySelector("#stt-text").innerText = data.stt_text;
-      // audioUploadDiv.querySelector("#stt-result").innerText = JSON.stringify(data.stt_result);
-
-      
-      masked_text = data.ner_text;
-      console.log('masked_text:', masked_text);
-      document.getElementById("masked-text").innerText = masked_text;
-
-      data.stt_result.text = masked_text;
-      console.log("data.stt_result", data.stt_result);
-
-      const audioData = document.getElementById("#masked-audio").files[0];
-
-      const audioBlob = maskAudio(audioData, JSON.stringify(data.stt_result)).then((audioBlob) => {
-
-        console.log("audioBlob", audioBlob.length);
-        console.log("audioBlob", audioBlob);
-        const audioUrl = URL.createObjectURL(audioBlob);
-
-        let audio = document.createElement("audio");
-        audio.controls = true;
-        audio.src = audioUrl;
-        audioUploadDiv.querySelector("#masked-audio").appendChild(audio);
-      })
-      .catch((error) => {
-        console.error('There was a problem with the fetch operation:', error);
+    try {
+      const response = await fetch("/upload", {
+        method: "POST",
+        body: formData,
       });
 
-      alert('파일 업로드 완료!');
-    } else {
-      // 업로드 실패 시 처리
-      alert('파일 업로드 실패.');
+      if (response.ok) {
+        const data = await response.json();
+        const fileName = data.fileName;
+
+        const fileData = { fileName: fileName };
+        console.log(data)
+
+        // Send the POST request to '/mask'
+        fetch('/mask', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(fileData)
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`Fail while masking. ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(data => {
+            const stt_text = data.stt_text;
+            document.getElementById("stt-text").innerText = stt_text;
+
+            const masked_text = data.ner_text;
+            console.log('masked_text:', masked_text);
+            document.getElementById("masked-text").innerText = masked_text;
+
+            const maskedFileName = data.fileName;
+            if (maskedFileName == null) {
+              return;
+            }
+            const maskedFileData = { fileName: maskedFileName };
+
+            // Send the POST request to '/download/masked'
+            fetch('/download/masked', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(maskedFileData)
+            })
+              .then(response => response.json())
+              .then(data => {
+                const audioData = document.getElementById("#masked-audio").files[0];
+
+                maskAudio(audioData, JSON.stringify(data.stt_result))
+                  .then((audioBlob) => {
+                    const audioUrl = URL.createObjectURL(audioBlob);
+
+                    let audio = document.createElement("audio");
+                    audio.controls = true;
+                    audio.src = audioUrl;
+                    audioUploadDiv.querySelector("#masked-audio").appendChild(audio);
+                  })
+                  .catch((error) => {
+                    console.error('There was a problem with the fetch operation:', error);
+                  });
+              })
+              .catch(error => {
+                console.error('Error:', error);
+                return;
+              });
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert(error)
+          });
+      } else {
+        alert(`File upload fail. ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error while uploading file:', error);
+      alert('File upload fail.');
     }
-  } catch (error) {
-    console.error('파일 업로드 중 오류 발생:', error);
-    alert('파일 업로드 중 오류가 발생했습니다.');
   }
-});
+
+  // Event listeners
+  browseButton.addEventListener('click', function () {
+    audioFileInput.click();
+  });
+
+  audioFileInput.addEventListener('change', async function (event) {
+    const selectedFile = event.target.files[0];
+    await handleFileUpload(selectedFile);
+  });
 });

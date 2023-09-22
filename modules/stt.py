@@ -1,8 +1,14 @@
 import whisper_timestamped as whisper
-import modules.audio as audio
 import re
-import modules.log as log
 import json
+
+import modules.audio as audio
+import modules.log as log
+
+# 로거 설정
+logger = log.get(__name__)
+log.set_level(__name__, "i")
+i, d = logger.info, logger.debug
 
 def transcribe(file):
     """
@@ -16,32 +22,27 @@ def transcribe(file):
     return whisper.transcribe(model, audio, language="ko")
 
 
-def overlay_mask_times(origin, mask_times, overlay=None, save_path=None, mix=False):
-    """
-    마스킹 된 단어들의 시간 리스트를 오디오 파일에 덮어씌운다.
+def get_stt(filename):
+    '''
+    converts audio to stt and returns text and word list
+    '''
+    try:
+        # STT 변환 실행
+        result = transcribe(filename)
+        i(f'Converted {filename} to text')
 
-    :param origin: 원본 오디오 파일
-    :param mask_times: 마스킹 된 단어들의 시간 구간 리스트
-    :param overlay: 덮어씌울 오디오 파일
-    :param save_path: 저장할 경로
+        # 'text' 부분만 추출하여 반환
+        text = result.get('text', '')  # 'text' 키가 없을 경우 빈 문자열 반환
 
-    :return: 덮어씌워진 오디오 파일 객체
-    """
+        word_list = []
+        for segment in result.get('segments'):
+            word_list.extend(segment['words'])
+    except Exception as e:
+        d(e)
 
-    origin = audio.load(origin)
-    for start, end in mask_times:
-        start *= 1000
-        end *= 1000
-        overlayed_audio = audio.overlay_audio(origin, start, end, overlay, mix=mix)
-        origin = overlayed_audio  # 연속적으로 계속 덮어씌우기
+    return text, word_list
 
-    # 저장하기
-    if save_path:
-        audio.save(origin, save_path)
-    return origin
-
-
-def has_mask(text):
+def has_mask_old(text):
     """
     텍스트에 마스킹된 부분이 있는지 확인한다.
     :param text: 텍스트
@@ -49,8 +50,39 @@ def has_mask(text):
     pattern = r"\[.*\]"  # 정규 표현식 패턴: "["로 시작하고 "]"로 끝나는 문자열
     return re.search(pattern, text) is not None
 
+def has_mask(word: str):
+    """
+    input a single str and tests if it is a masking token
+    """
+    pattern = r"^\[.*\]$"
+    return bool(re.match(pattern, word))
 
-def get_mask_times(file):
+def get_mask_times(word_list, masked_list):
+    """
+    get masked times from stt word list and ner masked text list
+
+    return None if list elements have different lengths
+    """
+    if len(word_list) != len (masked_list):  # error handling done by caller
+        return None
+    
+    mask_times = []
+    previous_mask = False
+    for word_data, word in zip(word_list, masked_list):
+        if has_mask(word):  # is masked word
+            if previous_mask:  # previous word was also a mask
+                mask_times[-1][-1] = word_data['end']  # update end time of last timeframe
+            else:
+                mask_times.append([word_data['start'], word_data['end']])
+            previous_mask = True
+
+        else:
+            previous_mask = False
+
+    return mask_times    
+    
+
+def get_mask_times_old(file):
     """
     마스킹 된 단어들의 시간 구간 리스트를 가져온다.
 
@@ -94,13 +126,13 @@ def get_mask_times(file):
             continue
 
         # [MASK]가 포함된 단어를 찾으면
-        if has_mask(ner_word):
+        if has_mask_old(ner_word):
             i("==================== 마스크 =======================")
             i(f"mask 시작 단어: {raw_word}")
             start_time = raw_word_info["start"]
             next_ner_word = ner_words[0] if len(ner_words) else "[]"
             prev_raw_word_info = raw_word_info
-            if not has_mask(next_ner_word) and len(ner_words):
+            if not has_mask_old(next_ner_word) and len(ner_words):
                 ner_words.pop(0)
                 while len(raw_words):
                     print("raw_word, next_ner_word", raw_word, next_ner_word)
@@ -125,39 +157,3 @@ def get_mask_times(file):
 
 def decode_text(txt):
     return bytes(txt, "utf-8").decode("unicode_escape")
-
-
-# 로거 설정
-logger = log.get(__name__)
-log.set_level(__name__, "i")
-i, d = logger.info, logger.debug
-
-
-# 메인
-if __name__ == "__main__":
-    # 파일 경로
-    audio_file = "audio/korean.mp3"
-    stt_file = "stt/korean.json"
-    
-    # # STT 후, 파일 저장
-    stt = transcribe(audio_file)
-    with open(stt_file, "w", encoding='utf-8') as f:
-        json.dump(stt, f, indent='\t', ensure_ascii=False)
-    # 출력해보기
-    stt = json.dumps(stt, indent='\t', ensure_ascii=False)
-    d(f"STT: {stt}")
-    
-    # 마스킹 된 단어들의 시간 구간 리스트 구하기
-    mask_times = get_mask_times(stt_file)
-    i(f"마스킹 시간구간: {mask_times}")
-
-    # 마스킹 된 단어들의 시간 구간 리스트를 오디오 파일에 덮어씌우기
-    # overlay_mask_times(audio_file, mask_times, overlay="audio/beep.mp3", save_path="audio/overlayed-korean.mp3")
-    overlay_path = "audio/overlayed-korean.mp3"
-    overlay_mask_times(audio_file, mask_times, save_path=overlay_path)
-    i(f"{overlay_path} 파일 저장됨")
-
-    # 마스킹 된 단어들의 시간 구간 리스트를 오디오 파일에 믹스하기 (동시에 들림)
-    mix_path = "audio/mixed-korean.mp3"
-    overlay_mask_times(audio_file, mask_times, save_path=mix_path, mix=True)
-    i(f"{mix_path} 파일 저장됨")
