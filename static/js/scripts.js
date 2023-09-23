@@ -48,7 +48,6 @@ window.addEventListener('DOMContentLoaded', event => {
 document.addEventListener('DOMContentLoaded', function () {
   const browseButton = document.getElementById('browseButton');
   const audioFileInput = document.getElementById('audioFile');
-  const audioUploadDiv = document.getElementById('audioUploadDiv');
 
   // Function to handle file upload
   async function handleFileUpload(selectedFile) {
@@ -96,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById("masked-text").innerText = masked_text;
 
             const maskedFileName = data.fileName;
-            if (maskedFileName == null) {
+            if (maskedFileName == null) { // NER server error
               return;
             }
             const maskedFileData = { fileName: maskedFileName };
