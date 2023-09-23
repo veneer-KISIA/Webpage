@@ -33,20 +33,22 @@ def mask_data():
     filepath = pathlib.Path.joinpath(filepath, filename)
     i(f'File: {filepath}')
 
+    # check supported file extension: .mp3
     if (ext := filepath.suffix) not in app.config['AUDIO_EXTS']:
         message = f'Unsuppored file type'
         d(f'{message}: {ext}')
         return jsonify(message=message), 400
     
+    # check file exists
     if not filepath.exists():
         message = f'File does not exist'
         d(f'{message}: {filepath}')
         return jsonify(message=message), 400
     
-
     i(f'Opening file: {filepath}')
     text, word_list = stt.get_stt(filepath)
 
+    # request to NER
     masked_text = api.request_ner(text)
     if masked_text:
         masked_list = masked_text.split()
@@ -113,7 +115,8 @@ def download(filename):
 def get_masked_audio():
     filename = json.loads(request.data).get('fileName', None)
 
-    filepath = pathlib.Path.joinpath(app.config['MASKED_AUDIO_FOLDER'], filename)
+    filepath = pathlib.Path(app.config['MASKED_AUDIO_FOLDER'])
+    filepath = pathlib.Path.joinpath(filepath, filename)
     if (ext := filepath.suffix) not in app.config['AUDIO_EXTS']:
         message = f'Unsuppored file type'
         d(f'get_masked: {message}: {ext}')
