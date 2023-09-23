@@ -15,14 +15,14 @@ def get(name: str, file=None):
     logger = logging.getLogger(name)
 
     if not logger.hasHandlers():
-        logger.setLevel(logging.INFO)
+        logger.setLevel(logging.DEBUG)
 
         stream_formatter = logging.Formatter(
             "[%(asctime)s] [%(levelname)s] %(message)s"
         )
         stream_handler = logging.StreamHandler()
         stream_handler.setFormatter(stream_formatter)
-        stream_handler.setLevel(logging.INFO)
+        stream_handler.setLevel(logging.DEBUG)
         logger.addHandler(stream_handler)
 
         file_handler = logging.FileHandler(file, mode="a", encoding="utf-8")
