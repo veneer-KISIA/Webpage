@@ -108,22 +108,15 @@ document.addEventListener('DOMContentLoaded', function () {
               },
               body: JSON.stringify(maskedFileData)
             })
-              .then(response => response.json())
-              .then(data => {
-                const audioData = document.getElementById("#masked-audio").files[0];
+              .then(response => response.blob())
+              .then(audioBlob => {
+                const audioUrl = URL.createObjectURL(audioBlob);
 
-                maskAudio(audioData, JSON.stringify(data.stt_result))
-                  .then((audioBlob) => {
-                    const audioUrl = URL.createObjectURL(audioBlob);
-
-                    let audio = document.createElement("audio");
-                    audio.controls = true;
-                    audio.src = audioUrl;
-                    audioUploadDiv.querySelector("#masked-audio").appendChild(audio);
-                  })
-                  .catch((error) => {
-                    console.error('There was a problem with the fetch operation:', error);
-                  });
+                let audio = document.createElement("audio");
+                audio.controls = true;
+                audio.src = audioUrl;
+                document.getElementById("masked-audio").innerText = ""
+                document.getElementById("masked-audio").appendChild(audio);
               })
               .catch(error => {
                 console.error('Error:', error);
