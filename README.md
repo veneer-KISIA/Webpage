@@ -1,8 +1,6 @@
 # Webpage
 
-
-![preview](https://github.com/veneer-KISIA/Webpage/assets/88125431/cfdd102d-6c7e-4470-9931-143c359a9928)
-
+![screencapture-127-0-0-1-9999-2023-09-26-14_02_16](https://github.com/veneer-KISIA/Webpage/assets/88125431/23c2e110-469d-4de3-89ca-c522cd8ba8ce)
 
 https://veneer.r-e.kr:9999/
 
