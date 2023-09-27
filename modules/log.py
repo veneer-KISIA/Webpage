@@ -30,7 +30,7 @@ def get(name: str, file=None):
             "[%(asctime)s] %(levelname)s(%(name)s) %(message)s"
         )
         file_handler.setFormatter(file_formatter)
-        file_handler.setLevel(logging.INFO)
+        file_handler.setLevel(logging.DEBUG)
         logger.addHandler(file_handler)
 
     return logger
