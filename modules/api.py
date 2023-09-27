@@ -20,7 +20,7 @@ def request_ner(text, url=NER_URL):
             logger.info('Request failed with status code:', ner_response.status_code)
             logger.info('Response content:', ner_response.text)
             ner_text = None
-    except ConnectionError:
+    except requests.exceptions.ConnectionError:
         ner_text = None
     except requests.exceptions.ConnectTimeout:
         ner_text = None
