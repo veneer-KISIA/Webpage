@@ -70,11 +70,18 @@ def mask_data():
         except Exception as e:
             d(e)
             return jsonify(message='Something went wrong'), 500
+        
+        try:
+            moderation_data = api.moderate_text(text)
+        except Exception as e:
+            d(f'Moderation API fail: {e}')
+            moderation_data = None
     else:
         masked_text = 'NER server error'
-        return jsonify(message='Only STT done', fileName=None, stt_text=text, ner_text=masked_text), 200
+        return jsonify(message='Only STT done', fileName=None, stt_text=text, ner_text=masked_text, moderation=moderation_data), 200
+        
     
-    return jsonify(message='Audio Masking done', fileName=masked_path.name, stt_text=text, ner_text=masked_text), 200
+    return jsonify(message='Audio Masking done', fileName=masked_path.name, stt_text=text, ner_text=masked_text, moderation=moderation_data), 200
 
 @app.route('/upload', methods=['POST'])
 def upload_stt():

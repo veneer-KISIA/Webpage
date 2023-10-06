@@ -1,5 +1,6 @@
 import requests, json
 import modules.log as log
+from google.cloud import language
 
 NER_DOMAIN = '34.64.229.136'
 NER_URL = f'http://{NER_DOMAIN}:8000/ner'
@@ -30,3 +31,18 @@ def request_ner(text, url=NER_URL):
         ner_text = None
 
     return ner_text
+
+def moderate_text(text: str):
+    '''
+    returns List[{'name': str, 'confidence': float}]
+    '''
+    client = language.LanguageServiceClient()
+    document = language.Document(
+        content=text,
+        type_=language.Document.Type.PLAIN_TEXT,
+    )
+    def confidence(category: language.ClassificationCategory) -> float:
+        return category.confidence
+    response = client.moderate_text(document=document)
+    categories = sorted(response.moderation_categories, key=confidence, reverse=True)
+    return [{'name': category.name, 'confidence': category.confidence} for category in categories]
