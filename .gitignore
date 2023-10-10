@@ -189,8 +189,7 @@ htmlcov/
 
 # veneer 전용
 uploads/
-log.log
 test/
-logs/
+logs/*.log
 
 test*.py

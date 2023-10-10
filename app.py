@@ -153,17 +153,8 @@ def configs():
     """
     설정 관련
     """
-    # 로컬 폴더
-    LOGS_FOLDER = 'logs'
-
     # supported audio file formats
     app.config['AUDIO_EXTS'] = ['.mp3']
-    
-    # 로컬 폴더 없으면 만들기
-    folders = [LOGS_FOLDER]
-    for folder in folders:
-        if not os.path.exists(folder):
-            os.makedirs(folder)
 
     # app 관련 config
     UPLOAD_FOLDER = 'uploads'
