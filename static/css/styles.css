@@ -11641,3 +11641,18 @@ a:hover{
 #drop input{
   display:none;
 }
+
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Adjust the gap as needed to control the distance between text and progress bar */
+}
+
+progress {
+  width: 50%;
+  height: 10px;
+}
+
+span {
+  flex: 1; /* Allow the text span to grow and take available space */
+}
