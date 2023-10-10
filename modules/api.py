@@ -1,6 +1,10 @@
 import requests, json
 import modules.log as log
-from google.cloud import language
+try:
+    from google.cloud import language
+    noapi = False
+except ModuleNotFoundError:  # when running from local test enviroment
+    noapi = True
 
 NER_DOMAIN = '34.64.229.136'
 NER_URL = f'http://{NER_DOMAIN}:8000/ner'
@@ -36,13 +40,16 @@ def moderate_text(text: str):
     '''
     returns List[{'name': str, 'confidence': float}]
     '''
-    client = language.LanguageServiceClient()
-    document = language.Document(
-        content=text,
-        type_=language.Document.Type.PLAIN_TEXT,
-    )
-    def confidence(category: language.ClassificationCategory) -> float:
-        return category.confidence
-    response = client.moderate_text(document=document)
-    categories = sorted(response.moderation_categories, key=confidence, reverse=True)
-    return [{'name': category.name, 'confidence': category.confidence} for category in categories]
+    if not noapi:
+        client = language.LanguageServiceClient()
+        document = language.Document(
+            content=text,
+            type_=language.Document.Type.PLAIN_TEXT,
+        )
+        def confidence(category: language.ClassificationCategory) -> float:
+            return category.confidence
+        response = client.moderate_text(document=document)
+        categories = sorted(response.moderation_categories, key=confidence, reverse=True)
+        return [{'name': category.name, 'confidence': category.confidence} for category in categories]
+    else:
+        return None
