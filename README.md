@@ -1,4 +1,4 @@
-# AI 민감정보 탐지 프로젝트 데모 사이트
+# Veneer Information Masking
 
 # Webpage
 
