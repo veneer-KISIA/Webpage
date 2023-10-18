@@ -113,6 +113,7 @@ async function maskAudioFile(fileName) {
   });
 
   if (!response.ok) {
+    alert("마스킹 오류: mp3파일 확인")
     throw new Error(`마스킹 오류 (/mask) ${response.status}`);
   }
 
