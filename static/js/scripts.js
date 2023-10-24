@@ -69,15 +69,15 @@ async function handleFileUpload(selectedFile) {
   // STT 결과 표시
   showSTTResult(response_data.stt_text, response_data.ner_text);
 
-  //API 결과 표시
-  const moderation_data = response_data.moderation;
-  showAPIresult(moderation_data);
-
   // 마스킹된 오디오 파일 다운로드
   const audioBlob = await downloadMaskedAudioFile(response_data.fileName);
 
   // 오디오 플레이어 생성
   createAudioPlayer(audioBlob);
+
+  //API 결과 표시
+  const moderation_data = response_data.moderation;
+  showAPIresult(moderation_data);
 }
 
 async function uploadAudioFile(selectedFile) {
@@ -164,21 +164,29 @@ function createAudioPlayer(audioBlob) {
 
 function showAPIresult(moderation_data) {
   const progressBarsContainer = document.getElementById("api-result");
-
-  moderation_data.forEach((item) => {
-    const textSpan = document.createElement("span");
-    textSpan.textContent = `${item.name}: ${item.confidence.toFixed(2) * 100}%`;
-
-    const container = document.createElement("div");
-    container.classList.add("progress-container");
-
-    const progressBar = document.createElement("progress");
-    progressBar.value = item.confidence;
-    progressBar.max = 1;
-
-    container.appendChild(textSpan);
-    container.appendChild(progressBar);
-
-    progressBarsContainer.appendChild(container);
-  });
+  
+  if (moderation_data == null) {
+    const text = document.createElement("text");
+    text.textContent = 'API Error';
+    progressBarsContainer.appendChild(text);
+  }
+  else {
+    moderation_data.forEach((item) => {
+      const textSpan = document.createElement("span");
+      textSpan.textContent = `${item.name}: ${item.confidence.toFixed(2) * 100}%`;
+  
+      const container = document.createElement("div");
+      container.classList.add("progress-container");
+  
+      const progressBar = document.createElement("progress");
+      progressBar.value = item.confidence;
+      progressBar.max = 1;
+  
+      container.appendChild(textSpan);
+      container.appendChild(progressBar);
+  
+      progressBarsContainer.appendChild(container);
+    });
+  }
+  
 }
