@@ -33,7 +33,7 @@ def mask_data():
     filepath = pathlib.Path.joinpath(filepath, filename)
     i(f'File: {filepath}')
 
-    # check supported file extension: .mp3
+    # check supported file extension: .mp3, .m4a
     if (ext := filepath.suffix) not in app.config['AUDIO_EXTS']:
         message = f'Unsuppored file type'
         d(f'{message}: {ext}')
@@ -123,12 +123,9 @@ def download(filename):
 def get_masked_audio():
     filename = json.loads(request.data).get('fileName', None)
 
+    file = pathlib.Path(filename)
     filepath = pathlib.Path(app.config['MASKED_AUDIO_FOLDER'])
-    filepath = pathlib.Path.joinpath(filepath, filename)
-    if (ext := filepath.suffix) not in app.config['AUDIO_EXTS']:
-        message = f'Unsuppored file type'
-        d(f'get_masked: {message}: {ext}')
-        return jsonify(message=message), 400
+    filepath = pathlib.Path.joinpath(filepath, f'{file.stem}.mp3')
 
     if not filepath.exists():
         message = f'File does not exist'
@@ -154,7 +151,7 @@ def configs():
     설정 관련
     """
     # supported audio file formats
-    app.config['AUDIO_EXTS'] = ['.mp3']
+    app.config['AUDIO_EXTS'] = ['.mp3', '.m4a']
 
     # app 관련 config
     UPLOAD_FOLDER = 'uploads'

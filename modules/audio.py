@@ -32,6 +32,10 @@ def save_audio(audio, path, new_format=None):
     audio.export(path, format=extension)
 
 
+def save_as_mp3(audio: AudioSegment, path):
+    name, _ = name_format(path)
+    audio.export(f'{name}.mp3')
+
 def name_format(file):
     """
     파일 이름과 확장자를 분리해서 리턴한다.
@@ -166,7 +170,7 @@ def overlay_mask_times(origin, mask_times, overlay=None, save_path=None, mix=Fal
 
     # 저장하기
     if save_path:
-        save_audio(new_audio, save_path)
+        save_as_mp3(new_audio, save_path)
     return origin
 
 # 메인
