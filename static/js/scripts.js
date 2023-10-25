@@ -173,7 +173,7 @@ function showAPIresult(moderation_data) {
   else {
     moderation_data.forEach((item) => {
       const textSpan = document.createElement("span");
-      textSpan.textContent = `${item.name}: ${item.confidence.toFixed(2) * 100}%`;
+      textSpan.textContent = `${item.name}: ${(item.confidence * 100).toFixed()}%`;
   
       const container = document.createElement("div");
       container.classList.add("progress-container");
