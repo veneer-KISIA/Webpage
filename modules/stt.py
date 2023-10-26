@@ -34,13 +34,15 @@ def get_stt(filename):
         # 'text' 부분만 추출하여 반환
         text = result.get('text', '')  # 'text' 키가 없을 경우 빈 문자열 반환
 
-        word_list = []
+        segment_list = []  # for ner
+        word_list = []  # for getting mask
         for segment in result.get('segments'):
             word_list.extend(segment['words'])
+            segment_list.append(segment['text'])
     except Exception as e:
         d(e)
 
-    return text, word_list
+    return text, word_list, segment_list
 
 def has_mask(word: str):
     """

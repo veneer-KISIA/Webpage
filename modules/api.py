@@ -11,20 +11,21 @@ NER_URL = f'http://{NER_DOMAIN}:8000/ner'
 
 logger = log.get(__name__)
 
-def request_ner(text, url=NER_URL):
+def request_ner(segment_list, url=NER_URL):
     # NER 모델 요청
-    ner_data = json.dumps({'text': text})
     ner_headers = {'Content-Type': 'application/json; charset=utf-8'}
-
+    ner_text = ''
     try:
-        ner_response = requests.post(url, data=ner_data, headers=ner_headers)        
-        if ner_response.status_code == 200:
-            ner_text = json.loads(ner_response.content.decode('unicode_escape'))['modified_text']
-            logger.info('Response content:', ner_text)
-        else:
-            logger.info('Request failed with status code:', ner_response.status_code)
-            logger.info('Response content:', ner_response.text)
-            ner_text = None
+        for segment in segment_list:
+            ner_data = json.dumps({'text': segment})
+            ner_response = requests.post(url, data=ner_data, headers=ner_headers)        
+            if ner_response.status_code == 200:
+                ner_text += json.loads(ner_response.content.decode('unicode_escape'))['modified_text']
+            else:
+                logger.info('Request failed with status code:', ner_response.status_code)
+                logger.info('Response content:', ner_response.text)
+                ner_text = None
+                break
             
     except requests.exceptions.ConnectTimeout as e:
         logger.debug(e)
@@ -33,6 +34,11 @@ def request_ner(text, url=NER_URL):
     except requests.exceptions.ConnectionError as e:
         logger.debug(e)
         ner_text = None
+
+    logger.info('Response content:', ner_text)
+
+    # convert PS_PET to PS_NAME (별명도 이름이랑 동일한 것으로 간주)
+    ner_text = ner_text.replace('[PS_PET]', '[PS_NAME]')
 
     return ner_text
 

@@ -46,10 +46,10 @@ def mask_data():
         return jsonify(message=message), 400
     
     i(f'Opening file: {filepath}')
-    text, word_list = stt.get_stt(filepath)
+    text, word_list, segment_list = stt.get_stt(filepath)
 
     # request to NER
-    masked_text = api.request_ner(text)
+    masked_text = api.request_ner(segment_list)
     moderation_data = None
 
     try:
@@ -137,7 +137,7 @@ def get_masked_audio():
 def setup_ssl():
     from flask_sslify import SSLify  # SSL 적용을 위한 모듈
 
-    ssl_home = '/etc/letsencrypt/live/veneer-test.r-e.kr/'
+    ssl_home = '/etc/letsencrypt/live/veneer-kisia.r-e.kr/'
     global ssl_fullchain 
     ssl_fullchain = ssl_home + 'fullchain.pem'
     global ssl_privkey 
