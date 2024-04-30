@@ -1,7 +1,7 @@
 # Veneer Information Masking
 
 ## Team Veneer
-|<img src="https://github.com/TABA-4th/taba-frontend/assets/120318020/e6a1292d-8898-4e3f-8f17-bc7b36a3953e" width="120px" height="120px">|<img src="" width="130px" height="120px">|<img src="https://github.com/veneer-KISIA/Webpage/assets/93692827/d498642b-2e57-4633-bece-b80e769e2c88" width="120px" height="120px">|
+|<img src="https://github.com/TABA-4th/taba-frontend/assets/120318020/e6a1292d-8898-4e3f-8f17-bc7b36a3953e" width="120px" height="120px">|<img src="https://github.com/veneer-KISIA/Webpage/assets/93692827/b0940ac1-e771-465e-8ae6-93dc6af88827" width="120px" height="120px">|<img src="https://github.com/veneer-KISIA/Webpage/assets/93692827/d498642b-2e57-4633-bece-b80e769e2c88" width="120px" height="120px">|
 |---|---|---|
 |장시우<br>([@siwooJang](https://github.com/siwooJang))|이정한<br>([@hohihanhyeon](https://github.com/ChunEunyu))|강인창<br>([@ScobraCK](https://github.com/ChunEunyu))
 |FrontEnd|BackEnd|AI|
